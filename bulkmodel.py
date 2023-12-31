@@ -187,13 +187,26 @@ def run_main(args):
     else:
         logging.info("not a legal sampling method")
 
+    if torch.backends.mps.is_available():
+        if torch.backends.mps.is_built():
+            logging.info("MPS available because the current PyTorch install was "
+              "built with MPS enabled.")
+        else:
+            logging.info("MPS not available because the current MacOS version is not 12.3+ "
+              "and/or you do not have an MPS-enabled device on this machine.")
+
     # Select the Training device
     if(args.device == "gpu"):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        torch.cuda.set_device(device)
-
+        if torch.backends.mps.is_available():
+            device = torch.device("mps")
+            torch.mps.manual_seed(seed)
+        else:
+            device = torch.device("cuda:0")
+            torch.cuda.set_device(device)
+        print('USING GPU')
     else:
         device = 'cpu'
+    
     #print(device)
     # Assuming that we are on a CUDA machine, this should print a CUDA device:
     #logging.info(device)

@@ -508,7 +508,7 @@ class CVAEBase(VAEBase):
         # Split the result into mu and var components
         # of the latent Gaussian distribution
         mu = self.fc_mu(result)
-        log_var = self.fc_var(result)
+        log_var = self.c(result)
 
         return [mu, log_var]
     
@@ -626,7 +626,18 @@ class DaNN(nn.Module):
         self.target_model = target_model
     '''
     def forward(self, X_source, X_target,C_target=None):
-     
+    # this has been changed
+        flag = 0
+        #print(f'Flag: {flag}')
+        if(self.source_model._get_name()=='PretrainedVAEPredictor'):
+            mu_src,log_var_src = self.source_model.encode_(X_source)
+
+            mu_tar,log_var_tar = self.target_model.encode_(X_target)
+
+            flag = 1
+
+            #return mu_src,log_var_src,mu_tar,log_var_tar
+        #print(f'Flag: {flag}')
         x_src_mmd = self.source_model.encode(X_source)
 
         if(type(C_target)==type(None)):
@@ -635,7 +646,7 @@ class DaNN(nn.Module):
             x_tar_mmd = self.target_model.encode(X_target,C_target)
 
         y_src = self.source_model.predictor(x_src_mmd)
-        return y_src, x_src_mmd, x_tar_mmd
+        return (y_src, x_src_mmd, x_tar_mmd) if flag == 0 else (y_src, x_src_mmd, x_tar_mmd,mu_src,log_var_src,mu_tar,log_var_tar)
     
 
 class TargetModel(nn.Module):

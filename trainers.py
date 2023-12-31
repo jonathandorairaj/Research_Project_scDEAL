@@ -628,11 +628,20 @@ def train_DaNN_model(net,source_loader,target_loader,
                 
                 if(net.target_model._get_name()=="CVAEBase"):
                     y_pre, x_src_mmd, x_tar_mmd = net(x_src, x_tar,y_tar)
+                elif(net.target_model._get_name() == "VAEBase"): # this has been changed
+                    #print('line 632')
+                    y_src, x_src_mmd, x_tar_mmd,mu_src,log_var_src,mu_tar,log_var_tar = net(x_src, x_tar)
                 else:
                     y_pre, x_src_mmd, x_tar_mmd = net(x_src, x_tar)
                 # compute loss
-                loss_c = loss_function(y_pre, y_src)      
-                loss_mmd = dist_loss(x_src_mmd, x_tar_mmd)
+                loss_c = loss_function(y_pre, y_src)
+
+                # this has been changed
+                if(net.target_model._get_name() == "VAEBase"):
+
+                    loss_mmd = dist_loss(mu_src,log_var_src,mu_tar,log_var_tar)
+                else:
+                    loss_mmd = dist_loss(x_src_mmd, x_tar_mmd)
 
                 loss = loss_c + weight * loss_mmd
 
@@ -802,6 +811,9 @@ def train_DaNN_model2(net,source_loader,target_loader,
                 
                 if(net.target_model._get_name()=="CVAEBase"):
                     y_pre, x_src_mmd, x_tar_mmd = net(x_src, x_tar,y_tar)
+                elif(net.target_model._get_name() == "VAEBase"): # this has been changed
+                    #print('line 815')
+                    y_pre, x_src_mmd, x_tar_mmd,mu_src,log_var_src,mu_tar,log_var_tar = net(x_src, x_tar)
                 else:
                     y_pre, x_src_mmd, x_tar_mmd = net(x_src, x_tar)
                 # compute loss
@@ -821,15 +833,30 @@ def train_DaNN_model2(net,source_loader,target_loader,
                         loss_s += np.sum(np.triu(s,1))/((s.shape[0]*s.shape[0])*2-s.shape[0])
                     #loss_s = torch.tensor(loss_s).cuda()
                     if(device=="cuda"):
+                        #print("line 836")
                         loss_s = torch.tensor(loss_s).cuda()
                     else:
                         loss_s = torch.tensor(loss_s).cpu()
-                    loss_s.requires_grad_(True)
-                    loss_c = loss_function(y_pre, y_src)      
-                    loss_mmd = dist_loss(x_src_mmd, x_tar_mmd)
-                    #print(loss_s,loss_c,loss_mmd)
-    
-                    loss = loss_c + weight * loss_mmd +loss_s
+                    #loss_s.requires_grad_(True)
+                    #loss_s = torch.tensor(loss_s, requires_grad=True, device=device,dtype=torch.float32)
+                    loss_s = loss_s.to(device, dtype=torch.float32).clone().detach().requires_grad_(True)
+
+                    loss_c = loss_function(y_pre, y_src)
+
+                    # this has been changed
+                    if(net.target_model._get_name() == "VAEBase"):
+                        #print('line 844')
+                        loss_mmd = dist_loss(mu_src,log_var_src,mu_tar,log_var_tar)
+                    else:
+                        loss_mmd = dist_loss(x_src_mmd, x_tar_mmd)
+
+                    #print(f"loss_s : {loss_s}, loss_c : {loss_c},loss_mmd : {loss_mmd}")
+                    #print(f"loss_s shape: {loss_s.shape}, loss_c shape: {loss_c.shape},loss_mmd shape : {loss_mmd.shape}")
+                    #print(loss_c.size(), loss_mmd.size(), loss_s.size())
+                    #print(weight)
+                    #loss = loss_c + weight * loss_mmd
+                    #print(loss)
+                    loss = (loss_c + (weight * loss_mmd)) + loss_s
     
     
                     # zero the parameter (weight) gradients

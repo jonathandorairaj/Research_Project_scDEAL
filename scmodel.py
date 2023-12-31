@@ -17,6 +17,7 @@ from torch import nn, optim
 from torch.optim import lr_scheduler
 from torch.utils.data import DataLoader, TensorDataset
 import DaNN.mmd as mmd
+import DaNN.discrepancy_loss as discrepancy_loss
 import scanpypip.preprocessing as pp
 import trainers as t
 import utils as ut
@@ -242,10 +243,24 @@ def run_main(args):
     # Along with the leiden conditions for CVAE propose
     Xtarget_train, Xtarget_valid, Ctarget_train, Ctarget_valid = train_test_split(data,data_c, test_size=valid_size, random_state=42)
 
+    if torch.backends.mps.is_available():
+        if torch.backends.mps.is_built():
+            logging.info("MPS available because the current PyTorch install was "
+              "built with MPS enabled.")
+        else:
+            logging.info("MPS not available because the current MacOS version is not 12.3+ "
+              "and/or you do not have an MPS-enabled device on this machine.")
+
     # Select the device of gpu
     if(args.device == "gpu"):
-        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        torch.cuda.set_device(device)
+        if torch.backends.mps.is_available():
+            device = torch.device("mps")
+            torch.mps.manual_seed(seed)
+            #torch.mps.manual_seed_all(seed)
+        else:
+            device = torch.device("cuda:0")
+            torch.cuda.set_device(device)
+        print('USING GPU')
     else:
         device = 'cpu'
     # Assuming that we are on a CUDA machine, this should print a CUDA device:
@@ -323,7 +338,7 @@ def run_main(args):
     #print('END SECTION OF LOADING BULK DATA')
 ################################################# END SECTION OF LOADING BULK DATA  #################################################
 
-################################################# START SECTION OF MODEL CUNSTRUCTION  #################################################
+################################################# START SECTION OF MODEL CONSTRUCTION  #################################################
     # Construct target encoder
     if reduce_model == "AE":
         encoder = AEBase(input_dim=data.shape[1],latent_dim=dim_au_out,h_dims=encoder_hdims,drop_out=args.dropout)
@@ -440,12 +455,23 @@ def run_main(args):
     # Set distribution loss 
     def loss(x,y,GAMMA=args.mmd_GAMMA):
         result = mmd.mmd_loss(x,y,GAMMA)
+        #result = mmd.loss_disc(x,y)
+        return result
+    
+    # this has been changed
+    # my custom loss function : loss discrepancy 
+    def loss2(mu_src,log_var_src,mu_tar,log_var_tar):
+        result = discrepancy_loss.discrepancy_loss(mu_src,log_var_src,mu_tar,log_var_tar)
+
         return result
 
-    loss_disrtibution = loss
+    if(encoder._get_name() == "VAEBase"):
+        loss_disrtibution = loss2
+    else:
+        loss_disrtibution = loss
      
     # Train DaNN model
-    logging.info("Trainig using" + mod + "model")
+    logging.info("Training using " + mod + " model")
     target_model = TargetModel(source_model,encoder)
     # Switch to use regularized DaNN model or not
     if mod == 'ori':
