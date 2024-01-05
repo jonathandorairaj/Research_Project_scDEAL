@@ -1,0 +1,35 @@
+## instructions
+These are the commands I used to train the model from scratch. Each run constitutes running the bulkmodel command first and then the scmodel script. The only changes made were changin --dimreduce argument to 'VAE' and adding the --VAErepram 1 argument. 
+
+
+## train from scratch 
+#source scDEALenv/bin/activate
+python bulkmodel.py --drug "I.BET.762" --dimreduce "DAE" --encoder_h_dims "256,128" --predictor_h_dims "128,64" --bottleneck 512 --data_name "GSE110894" --sampling "upsampling" --dropout 0.1 --lr 0.5 --printgene "F" -mod "new" --checkpoint "False"
+python scmodel.py --sc_data "GSE110894" --dimreduce "DAE" --drug "I.BET.762" --bulk_h_dims "256,128" --bottleneck 512 --predictor_h_dims "128,64" --dropout 0.1 --printgene "F" -mod "new" --lr 0.5 --sampling "upsampling" --printgene "F" -mod "new" --checkpoint "False"
+
+
+## I.BET.762 and GSE110894
+#source scDEALenv/bin/activate
+python bulkmodel.py --drug "I.BET.762" --dimreduce "VAE" --encoder_h_dims "256,128" --predictor_h_dims "128,64" --bottleneck 512 --data_name "GSE110894" --sampling "upsampling" --dropout 0.1 --lr 0.5 --printgene "F" -mod "new" --checkpoint "False" --VAErepram 1
+python scmodel.py --sc_data "GSE110894" --dimreduce "VAE" --drug "I.BET.762" --bulk_h_dims "256,128" --bottleneck 512 --predictor_h_dims "128,64" --dropout 0.1 --printgene "F" -mod "new" --lr 0.5 --sampling "upsampling" --checkpoint "False" --VAErepram 1
+
+# GEFITINIB and GSE112274
+python bulkmodel.py --drug "GEFITINIB" --dimreduce "VAE" --encoder_h_dims "512,256" --predictor_h_dims "256,128" --bottleneck 256 --data_name "GSE112274" --sampling "no" --dropout 0.1 --lr 0.5 --printgene "F" -mod "new" --checkpoint "False" --VAErepram 1
+python scmodel.py --sc_data "GSE112274" --dimreduce "VAE" --drug "GEFITINIB" --bulk_h_dims "512,256" --bottleneck 256 --predictor_h_dims "256,128" --dropout 0.1 -mod "new" --lr 0.5 --sampling "no" --printgene "F" --checkpoint "False" --VAErepram 1
+
+#CISPLATIN and GSE117872HN120
+python bulkmodel.py --drug "CISPLATIN" --dimreduce "VAE" --encoder_h_dims "256,128" --predictor_h_dims "128,64" --bottleneck 512 --data_name "GSE117872_HN120" --sampling "SMOTE" --dropout 0.3 --lr 0.01 --printgene "F" -mod "new" --checkpoint "False" --VAErepram 1
+python scmodel.py --sc_data "GSE117872_HN120" --dimreduce "VAE" --drug "CISPLATIN" --bulk_h_dims "256,128" --bottleneck 512 --predictor_h_dims "128,64" --dropout 0.3 -mod "new" --lr 0.01 --sampling "SMOTE" --printgene "F" --checkpoint "False" --VAErepram 1
+
+#CISPLATIN and GSE117872HN137
+python bulkmodel.py --drug "CISPLATIN" --dimreduce "VAE" --encoder_h_dims "512,256" --predictor_h_dims "256,128" --bottleneck 256 --data_name "GSE117872_HN137" --sampling "upsampling" --dropout 0.3 --lr 0.01 --printgene "F" -mod "new" --checkpoint "False" --VAErepram 1 --device gpu
+python scmodel.py --sc_data "GSE117872_HN137" --dimreduce "VAE" --drug "CISPLATIN" --bulk_h_dims "512,256" --bottleneck 256 --predictor_h_dims "256,128" --dropout 0.3 -mod "new" --lr 0.01 --sampling "upsampling" --printgene "F" --checkpoint "False" --VAErepram 1 --device gpu
+
+
+#DOCETAXEL and GSE140440
+python bulkmodel.py --drug "DOCETAXEL" --dimreduce "VAE" --encoder_h_dims "256,128" --predictor_h_dims "256,128" --bottleneck 512 --data_name "GSE140440" --sampling "upsampling" --dropout 0.1 --lr 0.01 --printgene "F" -mod "new" --checkpoint "False" --VAErepram 1
+python scmodel.py --sc_data "GSE140440" --dimreduce "VAE" --drug "DOCETAXEL" --bulk_h_dims "256,128" --bottleneck 512 --predictor_h_dims "256,128" --dropout 0.1 -mod "new" --lr 0.01 --sampling "upsampling" --printgene "F" --checkpoint "False" --VAErepram 1
+
+#ERLOTINIB and GSE149383
+python bulkmodel.py --drug "ERLOTINIB" --dimreduce "VAE" --encoder_h_dims "512,256" --predictor_h_dims "256,128" --bottleneck 256 --data_name "GSE149383" --sampling "upsampling" --dropout 0.3 --lr 0.01 --printgene "F" -mod "new" --checkpoint "False" --VAErepram 1
+python scmodel.py --sc_data "GSE149383" --dimreduce "VAE" --drug "ERLOTINIB" --bulk_h_dims "512,256" --bottleneck 256 --predictor_h_dims "256,128" --dropout 0.3 -mod "new" --lr 0.01 --sampling "upsampling" --printgene "F" --checkpoint "False" --VAErepram 1
