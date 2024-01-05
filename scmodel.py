@@ -559,10 +559,16 @@ def run_main(args):
     
     report_dict = classification_report(Y_test, lb_results, output_dict=True)
     f1score = report_dict['weighted avg']['f1-score']
+    precision = report_dict['weighted avg']['precision']
+    recall1 = report_dict['weighted avg']['recall']
+    acc_score = report_dict['accuracy']
     report_df['f1_score'] = f1score
-    file = 'save/bulk_f'+data_name+'_f1_score_ori.txt'
-    with open(file, 'a+') as f:
-         f.write(para+'\t'+str(f1score)+'\n') 
+    file1 = 'save/bulk_f'+data_name+'_f1_score_ori.txt'
+    with open(file1, 'a+') as f:
+         f.write(para+'\tF1 score :'+str(f1score)+'\tAccuracy: '+str(acc_score)+'\tPrecision: '+str(precision)+'\tRecall: '+ str(recall1)+'\tAP score: '+str(ap_score)+'\n')
+    #file2 = 'save/bulk_f'+data_name+'_accuracy_ori.txt'
+    #with open(file2, 'a+') as f:
+         #f.write(para+'\t'+str(acc_score)+'\n') 
     print("sc model finished")
     # If print gene is true, then print gene
     if (args.printgene=='T'):

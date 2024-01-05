@@ -20,6 +20,8 @@ def discrepancy_loss(mu_src,log_var_src,mu_tar,log_var_tar):
 
     #print(f"mu_b: {mu_b}")
     #print(f"var_b: {var_b}")
+    #mu_a1 = mu_a.view(mu_a.size(0), 1, -1)
+    #mu_a2 = mu_a.view(1, mu_a.size(0), -1)
     
     mu_a1 = mu_a.view(mu_a.size(0),1,-1)
     mu_a2 = mu_a.view(1,mu_a.size(0),-1)
